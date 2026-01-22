@@ -1,0 +1,41 @@
+{
+    "mcpServers": {
+        "sequential-thinking": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
+        },
+        "console-ninja": {
+            "command": "node",
+            "args": [
+                "~/.console-ninja/mcp/"
+            ]
+        },
+        "API 文档": {
+            "command": "npx"
+        },
+        "@21st-dev/magic": {
+            "command": "npx",
+            "args": [
+                "-y"
+            ]
+        },
+        "shadcn-ui-server": {},
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp@latest"
+            ]
+        },
+        "chrome-devtools": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "chrome-devtools-mcp"
+            ]
+        }
+    }
+}
