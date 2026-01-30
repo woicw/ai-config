@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
-description: Create a git commit
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git push:*)
+description: Create a git commit and push to remote
 ---
 
 ## Context
@@ -19,6 +19,8 @@ Based on the above changes, create a single git commit.
 1. Run `git add .` to stage all changes (including untracked files)
 2. Create commit with appropriate message
 3. Confirm the branch name and commit result
+4. Push to remote repository using `git push origin <branch-name>`
+5. Confirm the push result
 
 ### Commit message format
 
@@ -50,3 +52,9 @@ Follow **Conventional Commits** specification:
 - `style: format code with prettier`
 - `chore: update dependencies`
 - `docs: update README with installation steps`
+
+### Push behavior
+
+- Push to the current branch's upstream: `git push origin <branch-name>`
+- If push fails due to remote changes, inform the user (do not force push automatically)
+- Confirm successful push with branch name and commit hash
