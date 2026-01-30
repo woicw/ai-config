@@ -107,37 +107,36 @@ export default api
 // services/user.ts
 import api from './api'
 
-export const userService = {
-  getList: (params: UserListParams) => 
-    api.get<UserListResponse>('/users', { params }),
+ export const getList = (params: UserListParams) => 
+    api.get<UserListResponse>('/users', { params })
   
-  getById: (id: string) => 
-    api.get<User>(`/users/${id}`),
+ export const getById= (id: string) => 
+    api.get<User>(`/users/${id}`)
   
-  create: (data: CreateUserDTO) => 
-    api.post<User>('/users', data),
+ export const create= (data: CreateUserDTO) => 
+    api.post<User>('/users', data)
   
-  update: (id: string, data: UpdateUserDTO) => 
-    api.put<User>(`/users/${id}`, data),
+ export const update= (id: string, data: UpdateUserDTO) => 
+    api.put<User>(`/users/${id}`, data)
   
-  delete: (id: string) => 
-    api.delete(`/users/${id}`),
-}
+ export const delete= (id: string) => 
+    api.delete(`/users/${id}`)
+
 ```
 
 ### 3. ahooks 数据请求
 
 ```typescript
 import { useRequest } from 'ahooks'
-import { userService } from '@/services/user'
+import { getList } from '@/services/user'
 
 // 自动请求
 const { data, loading, error, refresh } = useRequest(
-  () => userService.getList({ page: 1 })
+  () => getList({ page: 1 })
 )
 
 // 手动触发
-const { run, loading } = useRequest(userService.create, {
+const { run, loading } = useRequest(create, {
   manual: true,
   onSuccess: () => {
     message.success('创建成功')
@@ -148,12 +147,12 @@ const { run, loading } = useRequest(userService.create, {
 // 分页
 const { data, loading, pagination } = useRequest(
   ({ current, pageSize }) => 
-    userService.getList({ page: current, size: pageSize }),
+    getList({ page: current, size: pageSize }),
   { paginated: true }
 )
 
 // 防抖搜索
-const { run: search } = useRequest(userService.getList, {
+const { run: search } = useRequest(getList, {
   manual: true,
   debounceWait: 300,
 })
