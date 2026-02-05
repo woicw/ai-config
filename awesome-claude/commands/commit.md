@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git push:*)
-description: Create a git commit and push to remote
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git push:*), Bash(git log:*)
+description: Create a git commit and push to remote (without Co-authored-by)
 ---
 
 ## Context
@@ -18,9 +18,23 @@ Based on the above changes, create a single git commit.
 
 1. Run `git add .` to stage all changes (including untracked files)
 2. Create commit with appropriate message
-3. Confirm the branch name and commit result
-4. Push to remote repository using `git push origin <branch-name>`
-5. Confirm the push result
+3. **Immediately remove Co-authored-by line** (see below)
+4. Confirm the branch name and commit result
+5. Push to remote repository using `git push origin <branch-name>`
+6. Confirm the push result
+
+### Remove Co-authored-by
+
+**CRITICAL**: After creating commit, immediately remove any Co-authored-by line that Cursor may have added:
+
+```bash
+# Get commit message without Co-authored-by lines
+CLEAN_MSG=$(git log -1 --pretty=%B | grep -v "^Co-authored-by:" | grep -v "^Co-authored-by: Cursor" | grep -v "cursoragent@cursor.com")
+# Amend commit with clean message
+git commit --amend -m "$CLEAN_MSG" --no-edit
+```
+
+**Important**: Always check and remove Co-authored-by lines before confirming commit result.
 
 ### Commit message format
 
@@ -58,3 +72,9 @@ Follow **Conventional Commits** specification:
 - Push to the current branch's upstream: `git push origin <branch-name>`
 - If push fails due to remote changes, inform the user (do not force push automatically)
 - Confirm successful push with branch name and commit hash
+
+### Important Notes
+
+- **Never include Co-authored-by**: The commit message must NOT contain any Co-authored-by lines, especially from Cursor
+- **Verify before push**: Always verify the commit message is clean before pushing
+- If Co-authored-by appears, use `git commit --amend` to remove it immediately
