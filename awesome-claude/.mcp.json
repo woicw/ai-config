@@ -13,16 +13,28 @@
                 "~/.console-ninja/mcp/"
             ]
         },
-        "API 文档": {
-            "command": "npx"
+        "API-Doc": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "apifox-mcp-server@latest",
+                "--project=4955295"
+            ],
+            "env": {
+                "APIFOX_ACCESS_TOKEN": "<your-token>"
+            }
         },
         "@21st-dev/magic": {
             "command": "npx",
             "args": [
-                "-y"
+                "-y",
+                "@21st-dev/magic@latest",
+                "API_KEY=\"<your-api-key>\""
             ]
         },
-        "shadcn-ui-server": {},
+        "shadcn-ui-server": {
+            "command": "/Users/woic/github/shadcn-ui-mcp-server/build/index.js"
+        },
         "context7": {
             "command": "npx",
             "args": [
