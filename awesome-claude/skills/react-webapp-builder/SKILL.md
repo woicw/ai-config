@@ -51,6 +51,11 @@ src/
 
 | Rule | Keywords | Description |
 |------|----------|-------------|
+| patterns-component | component, hook, utility, type, cn | 组件结构、自定义 Hooks、工具函数、类型定义 |
+| patterns-data-fetching | useRequest, fetch, api, request, loading | 数据请求模式（useRequest、分页、轮询） |
+| patterns-modal | modal, dialog, AntdModal, showModal, useAntModal | Modal 封装（AntdModal 完整实现 + 表单弹窗用例） |
+| patterns-zustand | zustand, store, state, userInfo, permission | Zustand Store 模式（用户状态、权限、拦截器） |
+| scenarios-crud | crud, table, form, list, create, edit, delete | CRUD 业务场景（列表 + 搜索 + 表单提交） |
 
 ## External References
 
