@@ -51,11 +51,21 @@ src/
 
 | Rule | Keywords | Description |
 |------|----------|-------------|
+| patterns-files | file, folder, naming, export, kebab-case, index.tsx | 文件/目录命名与导出规范（连字符命名、组件目录约定、统一命名导出） |
 | patterns-component | component, hook, utility, type, cn | 组件结构、自定义 Hooks、工具函数、类型定义 |
 | patterns-data-fetching | useRequest, fetch, api, request, loading | 数据请求模式（useRequest、分页、轮询） |
 | patterns-modal | modal, dialog, AntdModal, showModal, useAntModal | Modal 封装（AntdModal 完整实现 + 表单弹窗用例） |
 | patterns-zustand | zustand, store, state, userInfo, permission | Zustand Store 模式（用户状态、权限、拦截器） |
 | scenarios-crud | crud, table, form, list, create, edit, delete | CRUD 业务场景（列表 + 搜索 + 表单提交） |
+
+对应规则文件：
+
+- `patterns-files` -> `rules/patterns-files.md`
+- `patterns-component` -> `rules/patterns-component.md`
+- `patterns-data-fetching` -> `rules/patterns-data-fetching.md`
+- `patterns-modal` -> `rules/patterns-modal.md`
+- `patterns-zustand` -> `rules/patterns-zustand.md`
+- `scenarios-crud` -> `rules/scenarios-crud.md`
 
 ## External References
 
