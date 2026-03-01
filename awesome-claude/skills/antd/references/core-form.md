@@ -336,7 +336,6 @@ const DynamicForm = () => {
 ```tsx
 const ConditionalForm = () => {
   const [form] = Form.useForm();
-  const type = Form.useWatch('type', form);
 
   return (
     <Form form={form}>
@@ -347,15 +346,267 @@ const ConditionalForm = () => {
         </Select>
       </Form.Item>
 
-      {type === 'company' && (
-        <Form.Item name="companyName" label="Company Name">
-          <Input />
-        </Form.Item>
-      )}
+      <Form.Item noStyle shouldUpdate={(prev, cur) => prev.type !== cur.type}>
+        {({ getFieldValue }) =>
+          getFieldValue('type') === 'company' ? (
+            <Form.Item name="companyName" label="Company Name">
+              <Input />
+            </Form.Item>
+          ) : null
+        }
+      </Form.Item>
     </Form>
   );
 };
 ```
+
+## Linked Fields (Practical Scenario)
+
+Business scenario:
+
+- `accountType = company` then `companyName` is required
+- Changing `country` should clear `province` and `city`
+- Changing `province` should clear `city`
+- `city` options depend on `province`
+
+```tsx
+import { Form, Select, Input, Button } from 'antd';
+
+const provinceOptionsMap: Record<string, { label: string; value: string }[]> = {
+  cn: [
+    { label: 'Zhejiang', value: 'zhejiang' },
+    { label: 'Guangdong', value: 'guangdong' },
+  ],
+  us: [
+    { label: 'California', value: 'california' },
+    { label: 'Texas', value: 'texas' },
+  ],
+};
+
+const cityOptionsMap: Record<string, { label: string; value: string }[]> = {
+  zhejiang: [
+    { label: 'Hangzhou', value: 'hangzhou' },
+    { label: 'Ningbo', value: 'ningbo' },
+  ],
+  guangdong: [
+    { label: 'Guangzhou', value: 'guangzhou' },
+    { label: 'Shenzhen', value: 'shenzhen' },
+  ],
+  california: [
+    { label: 'San Francisco', value: 'san-francisco' },
+    { label: 'Los Angeles', value: 'los-angeles' },
+  ],
+  texas: [
+    { label: 'Austin', value: 'austin' },
+    { label: 'Houston', value: 'houston' },
+  ],
+};
+
+const getProvinceOptions = (country?: string) =>
+  country ? provinceOptionsMap[country] ?? [] : [];
+
+const getCityOptions = (province?: string) =>
+  province ? cityOptionsMap[province] ?? [] : [];
+
+const LinkedForm = () => {
+  const [form] = Form.useForm();
+
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onValuesChange={(changedValues) => {
+        if ('country' in changedValues) {
+          form.setFieldsValue({ province: undefined, city: undefined });
+        }
+        if ('province' in changedValues) {
+          form.setFieldValue('city', undefined);
+        }
+      }}
+      onFinish={(values) => console.log(values)}
+    >
+      <Form.Item
+        label="Account Type"
+        name="accountType"
+        rules={[{ required: true, message: 'Please select account type' }]}
+      >
+        <Select
+          options={[
+            { label: 'Personal', value: 'personal' },
+            { label: 'Company', value: 'company' },
+          ]}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Company Name"
+        name="companyName"
+        dependencies={['accountType']}
+        rules={[
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              const isCompany = getFieldValue('accountType') === 'company';
+              if (!isCompany || value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error('Please input company name'));
+            },
+          }),
+        ]}
+      >
+        <Input placeholder="Required only for company account" />
+      </Form.Item>
+
+      <Form.Item
+        label="Country"
+        name="country"
+        rules={[{ required: true, message: 'Please select country' }]}
+      >
+        <Select
+          options={[
+            { label: 'China', value: 'cn' },
+            { label: 'United States', value: 'us' },
+          ]}
+        />
+      </Form.Item>
+
+      <Form.Item
+        noStyle
+        shouldUpdate={(prev, cur) => prev.country !== cur.country}
+      >
+        {({ getFieldValue }) => {
+          const country = getFieldValue('country');
+          return (
+            <Form.Item
+              label="Province/State"
+              name="province"
+              dependencies={['country']}
+              rules={[{ required: true, message: 'Please select province/state' }]}
+            >
+              <Select
+                placeholder={country ? 'Select province/state' : 'Select country first'}
+                options={getProvinceOptions(country)}
+                disabled={!country}
+              />
+            </Form.Item>
+          );
+        }}
+      </Form.Item>
+
+      <Form.Item
+        noStyle
+        shouldUpdate={(prev, cur) => prev.province !== cur.province}
+      >
+        {({ getFieldValue }) => {
+          const province = getFieldValue('province');
+          return (
+            <Form.Item
+              label="City"
+              name="city"
+              dependencies={['province']}
+              rules={[{ required: true, message: 'Please select city' }]}
+            >
+              <Select
+                placeholder={province ? 'Select city' : 'Select province/state first'}
+                options={getCityOptions(province)}
+                disabled={!province}
+              />
+            </Form.Item>
+          );
+        }}
+      </Form.Item>
+
+      <Form.Item shouldUpdate={(prev, cur) => prev.accountType !== cur.accountType}>
+        {() =>
+          form.getFieldValue('accountType') === 'company' ? (
+            <div style={{ marginBottom: 16, color: '#8c8c8c' }}>
+              Company account requires additional compliance information in real projects.
+            </div>
+          ) : null
+        }
+      </Form.Item>
+
+      <Button type="primary" htmlType="submit">
+        Submit
+      </Button>
+    </Form>
+  );
+};
+```
+
+### Dependencies for Validation and Render Subscription
+
+`dependencies` has two common use cases:
+
+- Re-run validation when upstream field changes
+- Re-render a specific render-props block only when dependent fields change
+
+```tsx
+import React from 'react';
+import { Alert, Form, Input, Typography } from 'antd';
+
+const DependenciesDemo: React.FC = () => {
+  const [form] = Form.useForm();
+
+  return (
+    <Form
+      form={form}
+      name="dependencies"
+      autoComplete="off"
+      layout="vertical"
+      style={{ maxWidth: 600 }}
+    >
+      <Alert
+        message="Try modifying Password2, then modify Password"
+        type="info"
+        showIcon
+      />
+
+      <Form.Item label="Password" name="password" rules={[{ required: true }]}>
+        <Input />
+      </Form.Item>
+
+      <Form.Item
+        label="Confirm Password"
+        name="password2"
+        dependencies={['password']}
+        rules={[
+          { required: true },
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue('password') === value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error('The two passwords do not match!'));
+            },
+          }),
+        ]}
+      >
+        <Input />
+      </Form.Item>
+
+      <Form.Item noStyle dependencies={['password2']}>
+        {({ getFieldsValue }) => (
+          <Typography>
+            <p>
+              Only updates when <code>password2</code> changes:
+            </p>
+            <pre>{JSON.stringify(getFieldsValue(), null, 2)}</pre>
+          </Typography>
+        )}
+      </Form.Item>
+    </Form>
+  );
+};
+```
+
+Implementation notes:
+
+- Prefer `dependencies + shouldUpdate + getFieldValue` for field linkage in common business forms.
+- Reset downstream fields in `onValuesChange` to avoid stale selection.
+- Add `dependencies` to trigger re-validation when upstream values change.
+- Use `Form.Item noStyle + dependencies` for precise render subscription.
+- Use `shouldUpdate` only for small conditional UI blocks to control render cost.
 
 ## Form.Item Properties
 
