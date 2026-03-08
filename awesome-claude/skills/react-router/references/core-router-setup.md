@@ -9,7 +9,7 @@ description: Setup createBrowserRouter and RouterProvider for Data Mode. Use whe
 
 ## Basic Setup
 
-Create the router outside of the React tree with a statically defined set of routes:
+Create the router outside of the React tree with a statically defined set of routes. Prefer keeping lightweight root layouts eager and lazily loading heavier child routes:
 
 ```tsx
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -18,13 +18,15 @@ import { createRoot } from "react-dom/client";
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: Root,
+    Component: RootLayout,
     loader: rootLoader,
     children: [
       {
         path: "team",
-        Component: Team,
-        loader: teamLoader,
+        lazy: {
+          loader: async () => (await import("./routes/team.loader")).loader,
+          Component: async () => (await import("./routes/team.page")).TeamPage,
+        },
       },
     ],
   },
@@ -62,6 +64,7 @@ const router = createBrowserRouter(routes, {
 ```
 
 Available flags:
+
 - `v7_fetcherPersist` - Delay active fetcher cleanup until they return to idle
 - `v7_normalizeFormMethod` - Normalize `useNavigation().formMethod` to uppercase
 - `v7_partialHydration` - Support partial hydration for SSR apps
@@ -88,7 +91,8 @@ const router = createBrowserRouter(routes, {
 
 - **Create router outside React tree** - Router should be created statically, not inside component render
 - **Use RouterProvider** - Wrap your app with `<RouterProvider router={router} />`
-- **Static route definitions** - Define all routes upfront for optimal matching and data loading
+- **Static route definitions** - Define all route-matching fields upfront for optimal matching and data loading
+- **Prefer eager layouts, lazy pages** - Keep root layouts small and load heavier child routes with `route.lazy`
 - **DOM History API** - Uses browser's native history API for URL management
 
 <!--

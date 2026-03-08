@@ -5,151 +5,115 @@ description: Lazy loading routes to reduce initial bundle size. Use when you wan
 
 # Lazy Loading Routes
 
-The `lazy` property allows you to lazily import route implementations (Component, loader, action, etc.) to reduce the initial bundle size.
+Use `route.lazy` to code-split non-matching route implementation details such as `Component`, `loader`, `action`, and `ErrorBoundary`.
 
-## Basic Lazy Loading
+Prefer route-level code splitting in Data Mode apps built with `createBrowserRouter`.
 
-```tsx
-createBrowserRouter([
-  {
-    path: "/app",
-    lazy: async () => {
-      const [Component, loader] = await Promise.all([
-        import("./app"),
-        import("./app-loader"),
-      ]);
-      return { Component, loader };
-    },
-  },
-]);
-```
-
-## Lazy Component Only
-
-```tsx
-createBrowserRouter([
-  {
-    path: "/show/:showId",
-    loader: showLoader,
-    lazy: async () => {
-      const { Component } = await import("./show.component.js");
-      return { Component };
-    },
-  },
-]);
-```
-
-## Lazy Loader and Action
-
-```tsx
-createBrowserRouter([
-  {
-    path: "/show/:showId",
-    lazy: async () => {
-      const [loader, action, Component] = await Promise.all([
-        import("./show.loader.js").then((m) => m.loader),
-        import("./show.action.js").then((m) => m.action),
-        import("./show.component.js").then((m) => m.Component),
-      ]);
-      return { loader, action, Component };
-    },
-  },
-]);
-```
-
-## Route Module Pattern
-
-If using route modules, lazy load the entire module:
-
-```tsx
-createBrowserRouter([
-  {
-    path: "/dashboard",
-    lazy: async () => {
-      const module = await import("./routes/dashboard");
-      return {
-        Component: module.default,
-        loader: module.loader,
-        action: module.action,
-      };
-    },
-  },
-]);
-```
-
-## Parallel Loading
-
-Load multiple route properties in parallel:
-
-```tsx
-createBrowserRouter([
-  {
-    path: "/app",
-    lazy: async () => {
-      const [
-        { default: Component },
-        { loader },
-        { action },
-        { ErrorBoundary },
-      ] = await Promise.all([
-        import("./app.component"),
-        import("./app.loader"),
-        import("./app.action"),
-        import("./app.error"),
-      ]);
-      
-      return {
-        Component,
-        loader,
-        action,
-        ErrorBoundary,
-      };
-    },
-  },
-]);
-```
-
-## Nested Lazy Routes
-
-Lazy load nested routes:
+## Recommended Pattern
 
 ```tsx
 createBrowserRouter([
   {
     path: "/",
-    Component: Root,
+    Component: RootLayout,
     children: [
       {
-        path: "dashboard",
-        lazy: async () => {
-          const { default: Component } = await import("./dashboard");
-          return { Component };
+        index: true,
+        Component: HomePage,
+      },
+      {
+        path: "projects/:projectId",
+        lazy: {
+          loader: async () =>
+            (await import("./routes/project-detail.loader")).loader,
+          action: async () =>
+            (await import("./routes/project-detail.action")).action,
+          Component: async () =>
+            (await import("./routes/project-detail.page")).ProjectDetailPage,
+          ErrorBoundary: async () =>
+            (await import("./routes/project-detail.error")).ProjectDetailErrorBoundary,
         },
-        children: [
-          {
-            path: "settings",
-            lazy: async () => {
-              const { default: Component } = await import("./settings");
-              return { Component };
-            },
-          },
-        ],
       },
     ],
   },
 ]);
 ```
 
+## What Must Stay Static
+
+Keep all route-matching fields in the static route tree:
+
+- `path`
+- `index`
+- `children`
+- `caseSensitive`
+
+Do not attempt to lazy load route matching.
+
+## What Should Be Lazy
+
+Lazy load non-matching route implementation:
+
+- `Component`
+- `loader`
+- `action`
+- `ErrorBoundary`
+- Other non-matching route behavior
+
+## Why Prefer Object API
+
+Prefer the object form of `route.lazy` in library/data mode because it makes route-level code splitting explicit in the route definition:
+
+- Split component and data logic independently
+- Keep route config readable and static
+- Align with official `createBrowserRouter` examples
+- Make heavy leaf routes load on demand
+
+## Shared Chunk Pattern
+
+When several child routes should ship in one chunk, point multiple lazy properties at the same imported file:
+
+```tsx
+createBrowserRouter([
+  {
+    path: "dashboard",
+    children: [
+      {
+        index: true,
+        lazy: {
+          Component: async () =>
+            (await import("./routes/dashboard.chunk")).DashboardIndex,
+        },
+      },
+      {
+        path: "messages",
+        lazy: {
+          loader: async () =>
+            (await import("./routes/dashboard.chunk")).messagesLoader,
+          Component: async () =>
+            (await import("./routes/dashboard.chunk")).DashboardMessages,
+        },
+      },
+    ],
+  },
+]);
+```
+
+## Keep Critical Routes Eager
+
+Keep the first screen or tiny layout routes in the critical bundle when that improves first render. Lazy load heavier child pages, admin areas, dashboards, reports, and detail views.
+
 ## Key Points
 
-- **Reduce bundle size** - Only load route code when needed
-- **Parallel loading** - Use `Promise.all` to load multiple properties
-- **Route definitions** - Path and other route metadata should be static
-- **Type safety** - Lazy functions should return properly typed route properties
-- **Error handling** - Lazy loading errors are handled by error boundaries
+- **Use Data Routers only** - `route.lazy` is for `createBrowserRouter` and other data routers
+- **Split by route boundary** - make pages the main chunk boundary, not arbitrary component trees
+- **Keep matching static** - route matching must be known before lazy resolution
+- **Load implementation on demand** - fetch route code just before navigation/fetching
+- **Prefer object API** - make route-level code splitting explicit and easy to maintain
 
 <!--
 Source references:
 - https://reactrouter.com/start/data/route-object#lazy
 - https://reactrouter.com/start/data/custom#3-lazy-loading
+- https://reactrouter.com/changelog
 -->

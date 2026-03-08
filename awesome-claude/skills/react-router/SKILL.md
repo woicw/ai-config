@@ -1,6 +1,6 @@
 ---
 name: react-router
-description: React Router Data Mode with browser router. Use when building React applications with data loading, actions, fetchers, and navigation using createBrowserRouter and RouterProvider.
+description: React Router Data Mode with browser router. Use when building React applications with createBrowserRouter, RouterProvider, route.lazy, and route-level code splitting for loaders, actions, and route components.
 metadata:
   author: woic
   version: "2026.2.6"
@@ -16,7 +16,7 @@ React Router Data Mode enables data loading, actions, pending states, and more b
 ## Core References
 
 | Topic | Description | Reference |
-|-------|-------------|-----------|
+| ----- | ----------- | --------- |
 | Router Setup | createBrowserRouter, RouterProvider, basic configuration | [core-router-setup](references/core-router-setup.md) |
 | Route Objects | Route configuration, Component, path, children | [core-route-object](references/core-route-object.md) |
 | Navigation | Link, NavLink, Form, redirect, useNavigate | [core-navigation](references/core-navigation.md) |
@@ -26,7 +26,7 @@ React Router Data Mode enables data loading, actions, pending states, and more b
 ## Hooks
 
 | Topic | Description | Reference |
-|-------|-------------|-----------|
+| ----- | ----------- | --------- |
 | useParams | Access dynamic route parameters from URL | [hooks-use-params](references/hooks-use-params.md) |
 | useSearchParams | Read and update URL search parameters | [hooks-use-search-params](references/hooks-use-search-params.md) |
 | useLocation | Access current location (pathname, search, state, key) | [hooks-use-location](references/hooks-use-location.md) |
@@ -38,18 +38,67 @@ React Router Data Mode enables data loading, actions, pending states, and more b
 ## Features
 
 | Topic | Description | Reference |
-|-------|-------------|-----------|
+| ----- | ----------- | --------- |
 | Fetchers | Loading data and calling actions without navigation | [features-fetchers](references/features-fetchers.md) |
-| Lazy Loading | Code splitting with route.lazy | [features-lazy-loading](references/features-lazy-loading.md) |
+| Lazy Loading | Route-level code splitting with `route.lazy` object API | [features-lazy-loading](references/features-lazy-loading.md) |
 | Revalidation | Control when loader data refreshes | [features-revalidation](references/features-revalidation.md) |
 | Data Strategy | Advanced control over loader/action execution | [features-data-strategy](references/features-data-strategy.md) |
+
+## Preferred Route Definition Pattern
+
+Prefer static route matching and lazy route implementation:
+
+```tsx
+const router = createBrowserRouter([
+  {
+    path: "/",
+    Component: RootLayout,
+    children: [
+      {
+        index: true,
+        Component: HomePage,
+      },
+      {
+        path: "projects/:projectId",
+        lazy: {
+          loader: async () =>
+            (await import("./routes/project-detail.loader")).loader,
+          action: async () =>
+            (await import("./routes/project-detail.action")).action,
+          Component: async () =>
+            (await import("./routes/project-detail.page")).ProjectDetailPage,
+          ErrorBoundary: async () =>
+            (await import("./routes/project-detail.error")).ProjectDetailErrorBoundary,
+        },
+      },
+    ],
+  },
+]);
+```
+
+Keep route-matching fields static in the route tree:
+
+- `path`
+- `index`
+- `children`
+- `caseSensitive`
+
+Lazy load non-matching implementation fields with `route.lazy`:
+
+- `Component`
+- `loader`
+- `action`
+- `ErrorBoundary`
+- Other non-matching route behavior
 
 ## Key Recommendations
 
 - **Use createBrowserRouter** - recommended router for all React Router web projects
 - **Define routes statically** - create router outside React tree with static route definitions
+- **Keep matching keys static** - never lazy load `path`, `index`, or `children`
 - **Use loaders for data** - load data before components render
 - **Use actions for mutations** - actions automatically revalidate loader data
 - **Use fetchers for non-navigational interactions** - search, optimistic updates, etc.
-- **Leverage lazy loading** - use `route.lazy` to reduce initial bundle size
+- **Prefer route.lazy object API** - split `Component`, `loader`, `action`, and `ErrorBoundary` at the route level
+- **Code split by route boundary** - keep common layouts eager, lazy load leaf or heavy child routes
 - **Handle pending states** - use `useNavigation` and fetcher state for loading UI

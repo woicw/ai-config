@@ -42,18 +42,48 @@ function MyRouteComponent() {
 
 ## Path and Children
 
-Define nested routes with the `children` property:
+Define nested routes with the `children` property. Prefer a lightweight eager layout route with lazy-loaded child pages:
 
 ```tsx
 createBrowserRouter([
   {
     path: "/",
-    Component: Root,
+    Component: RootLayout,
     children: [
       {
         path: "events/:id",
-        Component: Event,
-        loader: eventLoader,
+        lazy: {
+          loader: async () => (await import("./routes/event.loader")).loader,
+          Component: async () => (await import("./routes/event.page")).EventPage,
+          ErrorBoundary: async () =>
+            (await import("./routes/event.error")).EventErrorBoundary,
+        },
+      },
+    ],
+  },
+]);
+```
+
+## Preferred Pattern
+
+Keep route-matching fields static and route implementation lazy when the child route is substantial:
+
+```tsx
+createBrowserRouter([
+  {
+    path: "/",
+    Component: RootLayout,
+    children: [
+      {
+        index: true,
+        Component: HomePage,
+      },
+      {
+        path: "reports",
+        lazy: {
+          loader: async () => (await import("./routes/reports.loader")).loader,
+          Component: async () => (await import("./routes/reports.page")).ReportsPage,
+        },
       },
     ],
   },
@@ -70,13 +100,15 @@ createBrowserRouter([
     path: "/",
     middleware: [loggingMiddleware],
     loader: rootLoader,
-    Component: Root,
+    Component: RootLayout,
     children: [
       {
         path: "auth",
         middleware: [authMiddleware],
-        loader: authLoader,
-        Component: Auth,
+        lazy: {
+          loader: async () => (await import("./routes/auth.loader")).authLoader,
+          Component: async () => (await import("./routes/auth.page")).AuthPage,
+        },
       },
     ],
   },
@@ -100,7 +132,7 @@ async function loggingMiddleware({ request }, next) {
 - **action** - Function to handle form submissions and mutations
 - **middleware** - Array of middleware functions
 - **shouldRevalidate** - Function to control when loader revalidates
-- **lazy** - Function to lazily load route implementation
+- **lazy** - Object or function to lazily load non-matching route implementation
 - **children** - Nested route objects
 - **index** - Boolean indicating index route
 - **errorElement** - Component to render on errors
@@ -108,6 +140,8 @@ async function loggingMiddleware({ request }, next) {
 ## Key Points
 
 - **Route objects are static** - Define routes outside React rendering
+- **Keep matching keys static** - Define `path`, `index`, and `children` eagerly in the route tree
+- **Lazy load heavy route implementation** - Prefer `route.lazy` for large child pages, loaders, and error boundaries
 - **Nested routes** - Use `children` array for nested route structure
 - **Path matching** - Routes match based on URL pathname
 - **Route IDs** - Can specify `id` for route identification
