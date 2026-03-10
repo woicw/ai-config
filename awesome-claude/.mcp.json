@@ -13,8 +13,12 @@
                 "~/.console-ninja/mcp/"
             ]
         },
-        "shadcn-ui-server": {
-            "command": "/Users/woic/github/shadcn-ui-mcp-server/build/index.js"
+        "shadcn": {
+            "command": "npx",
+            "args": [
+                "shadcn@latest",
+                "mcp"
+            ]
         },
         "context7": {
             "command": "npx",
