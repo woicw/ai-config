@@ -1,60 +1,182 @@
 ---
 name: zustand
-description: Zustand is a small, fast, scalable state management library for React. Use when creating stores, managing state/actions, using middleware (persist, devtools, immer), or implementing state patterns in React apps.
-metadata:
-  author: woic
-  version: "2026.2.5"
-  source: Generated from https://zustand.docs.pmnd.rs
+description: Zustand state management guide. Use when working with store code (src/store/**), implementing actions, managing state, or creating slices. Triggers on Zustand store development, state management questions, or action implementation.
 ---
 
-# Zustand
+# LobeHub Zustand State Management
 
-Zustand is a small, fast, and scalable state-management solution for React. It offers a simple hook-based API without boilerplate, with first-class TypeScript support and excellent devtools integration.
+## Action Type Hierarchy
 
-> The skill is based on Zustand v5.x, generated at 2026-02-05.
+### 1. Public Actions
 
-## Core References
+Main interfaces for UI components:
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Stores | Creating stores, state, actions, selectors, TypeScript patterns | [core-stores](references/core-stores.md) |
+- Naming: Verb form (`createTopic`, `sendMessage`)
+- Responsibilities: Parameter validation, flow orchestration
 
-## Middleware
+### 2. Internal Actions (`internal_*`)
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Persist | Persisting store data to localStorage/sessionStorage | [middleware-persist](references/middleware-persist.md) |
-| Devtools | Redux DevTools integration for debugging | [middleware-devtools](references/middleware-devtools.md) |
-| Immer | Write immutable updates with mutable syntax | [middleware-immer](references/middleware-immer.md) |
-| SubscribeWithSelector | Subscribe to specific state slices | [middleware-subscribe-with-selector](references/middleware-subscribe-with-selector.md) |
+Core business logic implementation:
 
-## Patterns
+- Naming: `internal_` prefix (`internal_createTopic`)
+- Responsibilities: Optimistic updates, service calls, error handling
+- Should not be called directly by UI
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Slices Pattern | Modular store organization for large apps | [patterns-slices](references/patterns-slices.md) |
-| Auto Selectors | Auto-generating selectors for cleaner code | [patterns-auto-selectors](references/patterns-auto-selectors.md) |
+### 3. Dispatch Methods (`internal_dispatch*`)
 
-## Best Practices
+State update handlers:
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Testing | Unit testing stores with Jest/Vitest, mocking, resetting | [best-practices-testing](references/best-practices-testing.md) |
-| Prevent Rerenders | Using useShallow and equality functions | [best-practices-prevent-rerenders](references/best-practices-prevent-rerenders.md) |
+- Naming: `internal_dispatch` + entity (`internal_dispatchTopic`)
+- Responsibilities: Calling reducers, updating store
 
-## Framework Integration
+## When to Use Reducer vs Simple `set`
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Next.js | Next.js integration, SSR, hydration, context provider | [integration-nextjs](references/integration-nextjs.md) |
+**Use Reducer Pattern:**
 
-## Key Recommendations
+- Managing object lists/maps (`messagesMap`, `topicMaps`)
+- Optimistic updates
+- Complex state transitions
 
-- **Use curried form with TypeScript** - `create<State>()(...)` for proper type inference
-- **Use selectors** to subscribe to specific state slices and prevent unnecessary rerenders
-- **Wrap selectors with `useShallow`** when returning objects/arrays to use shallow comparison
-- **Actions don't need `this`** - access state via `get()` parameter
-- **Store is a hook** - call it directly in components without providers
-- **Use `getState()` outside React** - access store state in non-React code
-- **Combine middleware carefully** - order matters: `devtools(persist(immer(...)))`
-- **Reset stores in tests** - use mock pattern to reset all stores after each test
+**Use Simple `set`:**
+
+- Toggling booleans
+- Updating simple values
+- Setting single state fields
+
+## Optimistic Update Pattern
+
+```typescript
+internal_createTopic: async (params) => {
+  const tmpId = Date.now().toString();
+
+  // 1. Immediately update frontend (optimistic)
+  get().internal_dispatchTopic(
+    { type: 'addTopic', value: { ...params, id: tmpId } },
+    'internal_createTopic'
+  );
+
+  // 2. Call backend service
+  const topicId = await topicService.createTopic(params);
+
+  // 3. Refresh for consistency
+  await get().refreshTopic();
+  return topicId;
+},
+```
+
+**Delete operations**: Don't use optimistic updates (destructive, complex recovery)
+
+## Naming Conventions
+
+**Actions:**
+
+- Public: `createTopic`, `sendMessage`
+
+- Internal: `internal_createTopic`, `internal_updateMessageContent`
+
+- Dispatch: `internal_dispatchTopic`
+  **State:**
+
+- ID arrays: `topicEditingIds`
+
+- Maps: `topicMaps`, `messagesMap`
+
+- Active: `activeTopicId`
+
+- Init flags: `topicsInit`
+
+## Detailed Guides
+
+- Action patterns: `references/action-patterns.md`
+- Slice organization: `references/slice-organization.md`
+
+## Class-Based Action Implementation
+
+We are migrating slices from plain `StateCreator` objects to **class-based actions**.
+
+### Pattern
+
+- Define a class that encapsulates actions and receives `(set, get, api)` in the constructor.
+- Use `#private` fields (e.g., `#set`, `#get`) to avoid leaking internals.
+- Prefer shared typing helpers:
+  - `StoreSetter<T>` from `@/store/types` for `set`.
+  - `Pick<ActionImpl, keyof ActionImpl>` to expose only public methods.
+- Export a `create*Slice` helper that returns a class instance.
+
+```ts
+type Setter = StoreSetter<HomeStore>;
+export const createRecentSlice = (set: Setter, get: () => HomeStore, _api?: unknown) =>
+  new RecentActionImpl(set, get, _api);
+
+export class RecentActionImpl {
+  readonly #get: () => HomeStore;
+  readonly #set: Setter;
+
+  constructor(set: Setter, get: () => HomeStore, _api?: unknown) {
+    void _api;
+    this.#set = set;
+    this.#get = get;
+  }
+
+  useFetchRecentTopics = () => {
+    // ...
+  };
+}
+
+export type RecentAction = Pick<RecentActionImpl, keyof RecentActionImpl>;
+```
+
+### Composition
+
+- In store files, merge class instances with `flattenActions` (do not spread class instances).
+- `flattenActions` binds methods to the original class instance and supports prototype methods and class fields.
+
+```ts
+const createStore: StateCreator<HomeStore, [['zustand/devtools', never]]> = (...params) => ({
+  ...initialState,
+  ...flattenActions<HomeStoreAction>([
+    createRecentSlice(...params),
+    createHomeInputSlice(...params),
+  ]),
+});
+```
+
+### Multi-Class Slices
+
+- For large slices that need multiple action classes, compose them in the slice entry using `flattenActions`.
+- Use a local `PublicActions<T>` helper if you need to combine multiple classes and hide private fields.
+
+```ts
+type PublicActions<T> = { [K in keyof T]: T[K] };
+
+export type ChatGroupAction = PublicActions<
+  ChatGroupInternalAction & ChatGroupLifecycleAction & ChatGroupMemberAction & ChatGroupCurdAction
+>;
+
+export const chatGroupAction: StateCreator<
+  ChatGroupStore,
+  [['zustand/devtools', never]],
+  [],
+  ChatGroupAction
+> = (...params) =>
+  flattenActions<ChatGroupAction>([
+    new ChatGroupInternalAction(...params),
+    new ChatGroupLifecycleAction(...params),
+    new ChatGroupMemberAction(...params),
+    new ChatGroupCurdAction(...params),
+  ]);
+```
+
+### Store-Access Types
+
+- For class methods that depend on actions in other classes, define explicit store augmentations:
+  - `ChatGroupStoreWithSwitchTopic` for lifecycle `switchTopic`
+  - `ChatGroupStoreWithRefresh` for member refresh
+  - `ChatGroupStoreWithInternal` for curd `internal_dispatchChatGroup`
+
+### Do / Don't
+
+- **Do**: keep constructor signature aligned with `StateCreator` params `(set, get, api)`.
+- **Do**: use `#private` to avoid `set/get` being exposed.
+- **Do**: use `flattenActions` instead of spreading class instances.
+- **Don't**: keep both old slice objects and class actions active at the same time.

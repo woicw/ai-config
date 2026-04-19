@@ -1,0 +1,174 @@
+{
+  "version": 2,
+  "skills": [
+    {
+      "name": "ahooks",
+      "source": "local"
+    },
+    {
+      "name": "antd",
+      "source": "local"
+    },
+    {
+      "name": "react-router",
+      "source": "local"
+    },
+    {
+      "name": "react-webapp-builder",
+      "source": "local"
+    },
+    {
+      "name": "screenshot-ui-restore",
+      "source": "local"
+    },
+    {
+      "name": "sync-remote-skills",
+      "source": "local"
+    },
+    {
+      "name": "woic",
+      "source": "local"
+    },
+    {
+      "name": "blueprinter",
+      "source": "yofine/skills",
+      "skillId": "blueprinter"
+    },
+    {
+      "name": "composition-patterns",
+      "source": "vercel-labs/agent-skills",
+      "skillId": "vercel-composition-patterns"
+    },
+    {
+      "name": "excalidraw-diagram-generator",
+      "source": "github/awesome-copilot",
+      "skillId": "excalidraw-diagram-generator"
+    },
+    {
+      "name": "find-skills",
+      "source": "vercel-labs/skills",
+      "skillId": "find-skills"
+    },
+    {
+      "name": "gh-cli",
+      "source": "github/awesome-copilot",
+      "skillId": "gh-cli"
+    },
+    {
+      "name": "nextjs",
+      "source": "vercel-labs/vercel-plugin",
+      "skillId": "nextjs"
+    },
+    {
+      "name": "pretty-mermaid",
+      "source": "imxv/Pretty-mermaid-skills",
+      "skillId": "pretty-mermaid"
+    },
+    {
+      "name": "prisma-client-api",
+      "source": "prisma/skills",
+      "skillId": "prisma-client-api"
+    },
+    {
+      "name": "programmatic-seo",
+      "source": "coreyhaines31/marketingskills",
+      "skillId": "programmatic-seo"
+    },
+    {
+      "name": "react",
+      "source": "vercel-labs/json-render",
+      "skillId": "react"
+    },
+    {
+      "name": "react-best-practices",
+      "source": "vercel-labs/agent-skills",
+      "skillId": "vercel-react-best-practices"
+    },
+    {
+      "name": "react:components",
+      "source": "google-labs-code/stitch-skills",
+      "skillId": "react:components"
+    },
+    {
+      "name": "review-and-refactor",
+      "source": "github/awesome-copilot",
+      "skillId": "review-and-refactor"
+    },
+    {
+      "name": "shadcn",
+      "source": "shadcn/ui",
+      "skillId": "shadcn"
+    },
+    {
+      "name": "skill-creator-anthropics",
+      "source": "anthropics/skills",
+      "skillId": "skill-creator",
+      "installName": "skill-creator-anthropics"
+    },
+    {
+      "name": "tailwindcss",
+      "source": "hairyf/skills",
+      "skillId": "tailwindcss"
+    },
+    {
+      "name": "tailwindcss-advanced-layouts",
+      "source": "josiahsiegel/claude-plugin-marketplace",
+      "skillId": "tailwindcss-advanced-layouts"
+    },
+    {
+      "name": "tsdown",
+      "source": "onmax/nuxt-skills",
+      "skillId": "tsdown"
+    },
+    {
+      "name": "turborepo",
+      "source": "vercel/turborepo",
+      "skillId": "turborepo"
+    },
+    {
+      "name": "vercel-react-view-transitions",
+      "source": "vercel-labs/agent-skills",
+      "skillId": "vercel-react-view-transitions"
+    },
+    {
+      "name": "vite",
+      "source": "antfu/skills",
+      "skillId": "vite"
+    },
+    {
+      "name": "vitepress",
+      "source": "antfu/skills",
+      "skillId": "vitepress"
+    },
+    {
+      "name": "vue",
+      "source": "antfu/skills",
+      "skillId": "vue"
+    },
+    {
+      "name": "vue-best-practices",
+      "source": "hyf0/vue-skills",
+      "skillId": "vue-best-practices"
+    },
+    {
+      "name": "vue-router-best-practices",
+      "source": "hyf0/vue-skills",
+      "skillId": "vue-router-best-practices"
+    },
+    {
+      "name": "vueuse-functions",
+      "source": "vueuse/skills",
+      "skillId": "vueuse-functions"
+    },
+    {
+      "name": "web-design-guidelines",
+      "source": "vercel-labs/agent-skills",
+      "skillId": "web-design-guidelines"
+    },
+    {
+      "name": "zustand",
+      "source": "lobehub/lobehub",
+      "skillId": "zustand"
+    }
+  ]
+}
