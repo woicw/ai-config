@@ -4,11 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "skills:add": "python3 awesome-claude/scripts/sync_skills_from_manifest.py add",
-    "skills:list": "python3 awesome-claude/scripts/sync_skills_from_manifest.py list",
-    "skills:check": "python3 awesome-claude/scripts/sync_skills_from_manifest.py check",
-    "skills:sync": "python3 awesome-claude/scripts/sync_skills_from_manifest.py sync",
-    "skills:sync:existing": "python3 awesome-claude/scripts/sync_skills_from_manifest.py sync --update-existing-only",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
