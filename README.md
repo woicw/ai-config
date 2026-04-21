@@ -6,6 +6,8 @@
 - `commands/`：可复用命令工作流
 - `.mcp.json`：MCP Server 配置
 
+Skill 的分发由 [`wrs`](https://www.npmjs.com/package/wrs) 完成——本仓库提供 manifest + 本地 skill，`wrs` 负责把它们同步到你的 AI 工作区。
+
 ## 项目结构
 
 ```text
