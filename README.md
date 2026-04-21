@@ -2,7 +2,7 @@
 
 个人 AI 助手配置仓库，主要维护 [awesome-claude](/Users/woic/woicw/ai-config/awesome-claude) 下的：
 
-- `skills/`：本地技能与远程同步技能
+- `skills/`：本地自写技能
 - `commands/`：可复用命令工作流
 - `.mcp.json`：MCP Server 配置
 
@@ -11,11 +11,11 @@
 ```text
 ai-config/
 ├── awesome-claude/
-│   ├── skills/
-│   ├── commands/
-│   ├── mcp/
-│   ├── skills.manifest.json
-│   └── scripts/sync_skills_from_manifest.py
+│   ├── skills/            # 本地自写 skill
+│   ├── commands/          # 可复用命令
+│   ├── mcp/               # MCP server 配置
+│   └── skills.manifest.json
+├── docs/plans/            # 设计 / 实施计划文档
 └── package.json
 ```
 
@@ -39,14 +39,30 @@ Commands 通过 `/` 命令触发：
 
 ## 远程 Skills 同步
 
-远程 skill 使用 [skills.manifest.json](/Users/woic/woicw/ai-config/awesome-claude/skills.manifest.json) 作为单一事实源。
+远程 skill 分发由 [`wrs`](https://github.com/woicw/wr-ai) 管理。使用 `skills.manifest.json` 来声明需要同步的远程 skill。
 
-- 本地自写 skill：`source: "local"`
-- 远程 skill：记录 `source` 和 `skillId`
-- `source` 直接复用 `skills.sh` / 搜索 API 返回的仓库标识，例如 `vercel-labs/agent-skills`
-- GitHub URL 不写死在 manifest 里，由同步脚本自动拼成 `https://github.com/<source>`
+快速开始：
 
-远程 skill 条目示例：
+```bash
+pnpm add -g wrs
+wrs set github woicw/ai-config
+wrs sync            # 首次交互选择；之后会记住
+wrs sync --refresh  # 强制从上游重新拉取所有远程 skill
+wrs cache clean     # 清空本地 skill 缓存
+```
+
+### Manifest 格式
+
+本地自写 skill 标记为 `source: "local"`：
+
+```json
+{
+  "name": "my-local-skill",
+  "source": "local"
+}
+```
+
+远程 skill 指定 `source` (GitHub 仓库标识) 和 `skillId`：
 
 ```json
 {
@@ -66,63 +82,6 @@ Commands 通过 `/` 命令触发：
   "installName": "skill-creator-anthropics"
 }
 ```
-
-## 同步命令
-
-推荐直接用根目录 `package.json` 的快捷命令：
-
-```bash
-pnpm run skills:add -- npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
-pnpm run skills:list
-pnpm run skills:check
-pnpm run skills:sync
-pnpm run skills:sync -- zustand
-pnpm run skills:sync:existing
-```
-
-等价的脚本入口是：
-
-```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py add npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
-python3 awesome-claude/scripts/sync_skills_from_manifest.py list
-python3 awesome-claude/scripts/sync_skills_from_manifest.py check
-python3 awesome-claude/scripts/sync_skills_from_manifest.py sync
-python3 awesome-claude/scripts/sync_skills_from_manifest.py sync zustand
-```
-
-### 新增远程 Skill
-
-如果你从 `skills.sh` 复制到了这样的命令：
-
-```bash
-npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
-```
-
-直接执行：
-
-```bash
-pnpm run skills:add -- npx skills add https://github.com/vercel-labs/agent-skills --skill vercel-react-best-practices
-```
-
-它会自动：
-
-1. 解析 repo URL
-2. 提取 `--skill`
-3. 写入 `awesome-claude/skills.manifest.json`
-
-然后再同步：
-
-```bash
-pnpm run skills:sync -- vercel-react-best-practices
-```
-
-### 同步策略
-
-- `skills:sync`：同步所有远程 skill
-- `skills:sync -- <name>`：只同步一个 skill
-- `skills:sync:existing`：只更新当前已经存在于 `awesome-claude/skills/` 的远程 skill
-
-当前同步器把 manifest 中的远程 skill 视为上游权威版本；如果远程 skill 同名目录已存在，会以最新同步结果替换它。
 
 ## 添加本地 Skill
 
