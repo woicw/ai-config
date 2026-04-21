@@ -112,8 +112,7 @@
     },
     {
       "name": "tailwindcss-advanced-layouts",
-      "source": "josiahsiegel/claude-plugin-marketplace",
-      "skillId": "tailwindcss-advanced-layouts"
+      "source": "local"
     },
     {
       "name": "tsdown",
