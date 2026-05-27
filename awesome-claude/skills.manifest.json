@@ -168,6 +168,11 @@
       "name": "zustand",
       "source": "lobehub/lobehub",
       "skillId": "zustand"
+    },
+     {
+      "name": "design-taste-frontend",
+      "source": "leonxlnx/taste-skill",
+      "skillId": "design-taste-frontend"
     }
   ]
 }
