@@ -170,9 +170,9 @@
       "skillId": "zustand"
     },
      {
-      "name": "design-taste-frontend",
-      "source": "leonxlnx/taste-skill",
-      "skillId": "design-taste-frontend"
+      "name": "impeccable",
+      "source": "pbakaus/impeccable",
+      "skillId": "impeccable"
     }
   ]
 }
