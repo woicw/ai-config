@@ -1,6 +1,6 @@
 ---
 name: woic
-description: Personal preferences and best practices for web development
+description: Woic's personal tooling preferences for JS/TS projects. MUST use when scaffolding or configuring any web/Node/TypeScript project — package manager (pnpm/ni), tsconfig, ESM, ESLint (@antfu/eslint-config, no Prettier), testing (Vitest), git hooks, docs (VitePress), monorepo (pnpm workspaces/Turborepo), library publishing (bumpp). Apply before choosing any tooling defaults.
 metadata:
   author: Woic
   version: "2026.2.7"

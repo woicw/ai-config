@@ -27,7 +27,11 @@ Example:
 src/pages/order-list/
 ├── components/
 │   └── order-table/
+│       ├── hooks/
+│       │   └── use-order-table.ts
 │       └── index.tsx
+├── hooks/
+│   └── use-order-list.ts
 ├── index.ts
 └── index.tsx
 ```
