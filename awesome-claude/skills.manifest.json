@@ -37,7 +37,7 @@
     {
       "name": "composition-patterns",
       "source": "vercel-labs/agent-skills",
-      "skillId": "composition-patterns"
+      "skillId": "vercel-composition-patterns"
     },
     {
       "name": "excalidraw-diagram-generator",
@@ -82,7 +82,7 @@
     {
       "name": "react-best-practices",
       "source": "vercel-labs/agent-skills",
-      "skillId": "react-best-practices"
+      "skillId": "vercel-react-best-practices"
     },
     {
       "name": "react:components",
@@ -127,7 +127,7 @@
     {
       "name": "vercel-react-view-transitions",
       "source": "vercel-labs/agent-skills",
-      "skillId": "react-view-transitions"
+      "skillId": "vercel-react-view-transitions"
     },
     {
       "name": "vite",
