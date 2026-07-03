@@ -82,7 +82,7 @@
     {
       "name": "react:components",
       "source": "google-labs-code/stitch-skills",
-      "skillId": "react:components"
+      "skillId": "stitch::react-components"
     },
     {
       "name": "review-and-refactor",
