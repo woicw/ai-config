@@ -50,11 +50,6 @@
       "skillId": "find-skills"
     },
     {
-      "name": "gh-cli",
-      "source": "github/awesome-copilot",
-      "skillId": "gh-cli"
-    },
-    {
       "name": "nextjs",
       "source": "vercel-labs/vercel-plugin",
       "skillId": "nextjs"
