@@ -1,0 +1,48 @@
+name: Audit skills manifest
+
+on:
+  schedule:
+    - cron: '0 2 * * 1' # 每周一 UTC 02:00(北京时间周一 10:00)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run audit
+        id: audit
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          node awesome-claude/scripts/audit-skills.mjs > audit.log 2>&1
+          echo "exit=$?" >> "$GITHUB_OUTPUT"
+          cat audit.log
+
+      - name: Open or update issue on failure
+        if: steps.audit.outputs.exit != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="skills manifest 审计失败:上游 skill 已改名或移除"
+          body=$(printf '`audit-skills.mjs` 发现以下问题,`wrs sync` 会在这些条目上失败:\n\n```\n%s\n```\n\n修复方式见 `awesome-claude/skills/sync-remote-skills/SKILL.md`。\n' "$(cat audit.log)")
+          existing=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+
+      - name: Fail job if audit failed
+        if: steps.audit.outputs.exit != '0'
+        run: exit 1
