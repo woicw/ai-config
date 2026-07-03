@@ -1,54 +1,45 @@
 ---
 name: sync-remote-skills
-description: Sync remote-managed skills in awesome-claude from a local manifest file. Use when updating skills to their latest upstream versions, checking which skills are unresolved, or refreshing a single managed skill without touching local-only skills.
+description: Sync remote-managed skills in awesome-claude from the manifest, and audit skillIds against upstream before syncing. Use when updating skills to their latest upstream versions, when `wrs sync` fails with "No matching skills found", or when checking manifest health.
 ---
 
 # Sync Remote Skills
 
-Use the manifest at `awesome-claude/skills.manifest.json` as the source of truth.
-
-## When to Use
-
-- Refresh all remote-managed skills to the latest upstream version
-- Update one specific remote-managed skill
-- Check which skills are unresolved and still need source mapping
-- Verify that installed skills match the manifest
+Use the manifest at `awesome-claude/skills.manifest.json` as the source of truth. Syncing is done by the `wrs` CLI (wr-ai, requires >= 4.2.0), which clones `woicw/ai-config` **from GitHub** — manifest fixes must be committed and pushed before they take effect.
 
 ## Commands
 
-### List all managed skills
+### Audit manifest health (run this first when sync fails)
 
 ```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py list
+node awesome-claude/scripts/audit-skills.mjs
 ```
 
-### Check manifest health
+Verifies, for every remote entry, that the source repo exists / isn't renamed, and that `skillId` matches a SKILL.md frontmatter `name` upstream. Verifies local entries have a directory under `awesome-claude/skills/`. Exits non-zero on problems with a suggested fix per finding.
+
+### Sync all selected skills globally
 
 ```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py check
+wrs sync -g
 ```
 
-### Sync every resolved remote skill
+### Force re-fetch from upstream (ignore cache)
 
 ```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py sync
+wrs sync -g --refresh
 ```
 
-### Sync only one skill
+## How it works (debugging knowledge)
 
-```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py sync zustand
-```
-
-### Update only skills that already exist locally
-
-```bash
-python3 awesome-claude/scripts/sync_skills_from_manifest.py sync --update-existing-only
-```
+- `wrs` runs `npx skills add <repo> --skill <skillId>` per remote entry. The `skills` CLI matches `--skill` against the SKILL.md **frontmatter `name`**, not the directory name. When upstream renames the frontmatter, sync fails with "No matching skills found" — fix `skillId` in the manifest.
+- The CLI sanitizes special characters in output directory names (e.g. `stitch::react-components` → `stitch-react-components`). wr-ai >= 4.2.0 handles this; 4.1.0 does not (`npm i -g wr-ai@latest` to fix).
+- Cache lives at `~/.wrs/cache/skills/<name>`. Sync without `--refresh` skips cached entries, so re-running after a failure resumes where it stopped.
+- The skill selection is stored in `~/.wrs/config.json` (`lastSelection.skills`). Names missing from the manifest are silently skipped.
+- `curl 18 / early EOF` while cloning large repos (e.g. `github/awesome-copilot`) is transient network failure — just re-run.
 
 ## Rules
 
 - Do not add local-only skills to the remote sync path.
-- Add or update upstream mappings in `skills.manifest.json` before syncing.
-- If a skill is marked unresolved, do not guess a repo or path during sync; resolve the mapping first.
-- Keep `install_name` aligned with the directory name in `awesome-claude/skills/` when the upstream path basename differs.
+- Update `skillId`/`source` mappings in `skills.manifest.json` before syncing; run the audit script to find the correct values.
+- Keep `installName` aligned with the directory name in `awesome-claude/skills/` when the upstream skill name differs from the desired install name.
+- Commit and push manifest changes before re-running `wrs sync` — it reads the manifest from GitHub, not the local checkout.

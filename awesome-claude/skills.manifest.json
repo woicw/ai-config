@@ -51,7 +51,7 @@
     },
     {
       "name": "nextjs",
-      "source": "vercel-labs/vercel-plugin",
+      "source": "vercel/vercel-plugin",
       "skillId": "nextjs"
     },
     {
@@ -91,7 +91,7 @@
     },
     {
       "name": "shadcn",
-      "source": "shadcn/ui",
+      "source": "shadcn-ui/ui",
       "skillId": "shadcn"
     },
     {
@@ -141,12 +141,12 @@
     },
     {
       "name": "vue-best-practices",
-      "source": "hyf0/vue-skills",
+      "source": "vuejs-ai/skills",
       "skillId": "vue-best-practices"
     },
     {
       "name": "vue-router-best-practices",
-      "source": "hyf0/vue-skills",
+      "source": "vuejs-ai/skills",
       "skillId": "vue-router-best-practices"
     },
     {
@@ -164,7 +164,7 @@
       "source": "lobehub/lobehub",
       "skillId": "zustand"
     },
-     {
+    {
       "name": "impeccable",
       "source": "pbakaus/impeccable",
       "skillId": "impeccable"
